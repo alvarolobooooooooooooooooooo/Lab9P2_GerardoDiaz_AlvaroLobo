@@ -56,6 +56,6 @@ public class Archivo {
 
     @Override
     public String toString() {
-        return nombre + extension;
+        return nombre +"."+ extension;
     }
 }
