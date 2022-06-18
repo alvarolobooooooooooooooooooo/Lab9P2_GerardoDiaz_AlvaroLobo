@@ -1,6 +1,9 @@
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -17,7 +20,7 @@ import javax.swing.tree.DefaultTreeModel;
  * @author agln7
  */
 public class Principal extends javax.swing.JFrame {
-
+int numero1;
     /**
      * Creates new form Principal
      */
@@ -61,7 +64,8 @@ public class Principal extends javax.swing.JFrame {
         tree_destacados = new javax.swing.JTree();
         jd_Papelera = new javax.swing.JDialog();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTree1 = new javax.swing.JTree();
+        tree_papelera = new javax.swing.JTree();
+        jButton1 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -242,8 +246,8 @@ public class Principal extends javax.swing.JFrame {
         );
 
         treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("Papelera");
-        jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        jScrollPane2.setViewportView(jTree1);
+        tree_papelera.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
+        jScrollPane2.setViewportView(tree_papelera);
 
         javax.swing.GroupLayout jd_PapeleraLayout = new javax.swing.GroupLayout(jd_Papelera.getContentPane());
         jd_Papelera.getContentPane().setLayout(jd_PapeleraLayout);
@@ -257,6 +261,13 @@ public class Principal extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        jButton1.setText("Guardar Datos antes de Desconectar");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
 
         jMenu1.setText("File");
 
@@ -312,11 +323,17 @@ public class Principal extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1312, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(22, 22, 22)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 248, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(1042, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 496, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(373, Short.MAX_VALUE)
+                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(54, 54, 54))
         );
 
         pack();
@@ -410,8 +427,9 @@ public class Principal extends javax.swing.JFrame {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree_miunidad.getLastSelectedPathComponent();
             raiz.add(node);
             modelo.removeNodeFromParent(node);
-            transferir.reload();
             modelo.reload();
+            transferir.reload();
+            
         }
     }//GEN-LAST:event_DestacadoActionPerformed
 
@@ -435,6 +453,16 @@ public class Principal extends javax.swing.JFrame {
             modelo.reload();
         }
     }//GEN-LAST:event_eliminarActionPerformed
+
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+        try {
+            for (int i = 0; i < archivos.size(); i++) {
+                agregarABasedeDatos(archivos.get(i).getTamano(), archivos.get(i).getNombre());
+            }
+            JOptionPane.showMessageDialog(null, "Archivos guardados correctamente");
+        } catch (SQLException ex) {
+        }
+    }//GEN-LAST:event_jButton1MouseClicked
 
     /**
      * @param args the command line arguments
@@ -467,6 +495,7 @@ public class Principal extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new Principal().setVisible(true);
+                
             }
         });
     }
@@ -477,6 +506,7 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JButton crearArchivo;
     private javax.swing.JButton crearCarpeta;
     private javax.swing.JMenuItem eliminar;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -494,7 +524,6 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
-    private javax.swing.JTree jTree1;
     private javax.swing.JDialog jd_AgregarArchivo;
     private javax.swing.JDialog jd_Papelera;
     private javax.swing.JDialog jd_agregarCarpeta;
@@ -508,8 +537,37 @@ public class Principal extends javax.swing.JFrame {
     private javax.swing.JTree tree_carpetas;
     private javax.swing.JTree tree_destacados;
     private javax.swing.JTree tree_miunidad;
+    private javax.swing.JTree tree_papelera;
     // End of variables declaration//GEN-END:variables
     ArrayList <Carpeta> carpetas = new ArrayList();
     ArrayList <Archivo> archivos = new ArrayList();
+    administrarTiempo HT;
+    administrarTiempo AT;
+    bitacora b;
 
+    
+    
+    
+    public void agregarABasedeDatos(int tamano, String nombre) throws java.sql.SQLException{
+        Dba db = new Dba("./base1.mdb");
+        db.conectar();
+        try {
+            int c;
+            String n;
+            c = tamano;
+            n = nombre;
+            db.query.execute("INSERT INTO alumnos"
+                    + " (tamano,nombre)"
+                    + " VALUES ('" + c + "', '" + n + "')");
+            db.commit();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        db.desconectar();
+        
+
+        
+
+
+    }
 }
